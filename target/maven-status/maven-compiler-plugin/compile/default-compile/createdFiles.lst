@@ -1,5 +1,4 @@
 cl/pymetrack/msproductos/inventario/service/InventarioService.class
-cl/pymetrack/msproductos/config/CorsConfig.class
 cl/pymetrack/msproductos/shared/config/RabbitMQConfig.class
 cl/pymetrack/msproductos/producto/repository/ProductoRepository.class
 cl/pymetrack/msproductos/MsProductosApplication.class
