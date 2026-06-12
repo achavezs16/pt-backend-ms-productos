@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     
     public static final String PEDIDOS_EXCHANGE = "pedidos.exchange";
-    public static final String PEDIDO_CREADO_QUEUE = "pedido.creadado";
+    public static final String PEDIDO_CREADO_QUEUE = "pedido.creaado";
     public static final String PEDIDO_CONFIRMADO_QUEUE = "pedido.confirmado";
     public static final String INVENTARIO_ACTUALIZADO_QUEUE = "inventario.actualizado";
     
-    public static final String PEDIDO_CREADO_ROUTING_KEY = "pedido.creadado";
+    public static final String PEDIDO_CREADO_ROUTING_KEY = "pedido.creaado";
     public static final String PEDIDO_CONFIRMADO_ROUTING_KEY = "pedido.confirmado";
     public static final String INVENTARIO_ACTUALIZADO_ROUTING_KEY = "inventario.actualizado";
     
