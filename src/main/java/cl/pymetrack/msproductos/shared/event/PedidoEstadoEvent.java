@@ -1,12 +1,17 @@
 package cl.pymetrack.msproductos.shared.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PedidoEstadoEvent {
 
     private Long pedidoId;
     private Long idPyme;
+    private String nombreCliente;
+    private String emailCliente;
     private String estadoAnterior;
     private String estadoNuevo;
     private Long repartidorId;
@@ -21,6 +26,12 @@ public class PedidoEstadoEvent {
 
     public Long getIdPyme() { return idPyme; }
     public void setIdPyme(Long idPyme) { this.idPyme = idPyme; }
+
+    public String getNombreCliente() { return nombreCliente; }
+    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
+
+    public String getEmailCliente() { return emailCliente; }
+    public void setEmailCliente(String emailCliente) { this.emailCliente = emailCliente; }
 
     public String getEstadoAnterior() { return estadoAnterior; }
     public void setEstadoAnterior(String estadoAnterior) { this.estadoAnterior = estadoAnterior; }
