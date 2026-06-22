@@ -2,12 +2,14 @@ package cl.pymetrack.msproductos.inventario.service;
 
 import cl.pymetrack.msproductos.inventario.entity.Inventario;
 import cl.pymetrack.msproductos.inventario.repository.InventarioRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,158 +26,217 @@ public class InventarioServiceTest {
     @InjectMocks
     private InventarioService inventarioService;
 
+    private Inventario inventario;
+
+    @BeforeEach
+    void setUp() {
+        inventario = new Inventario();
+        inventario.setId(1L);
+        inventario.setProductoId(10L);
+        inventario.setStockDisponible(100);
+        inventario.setStockReservado(20);
+    }
+
+    // ==========================================
+    // TESTS MÉTODOS BÁSICOS (CRUD)
+    // ==========================================
+
     @Test
-    void findAll_Success() {
-        when(inventarioRepository.findAll()).thenReturn(List.of(new Inventario()));
-        List<Inventario> result = inventarioService.findAll();
-        assertFalse(result.isEmpty());
+    void testFindAll() {
+        when(inventarioRepository.findAll()).thenReturn(Arrays.asList(inventario));
+        List<Inventario> resultado = inventarioService.findAll();
+        assertFalse(resultado.isEmpty());
+        assertEquals(1, resultado.size());
     }
 
     @Test
-    void findById_Success() {
-        when(inventarioRepository.findById(1L)).thenReturn(Optional.of(new Inventario()));
-        Optional<Inventario> result = inventarioService.findById(1L);
-        assertTrue(result.isPresent());
+    void testFindById() {
+        when(inventarioRepository.findById(1L)).thenReturn(Optional.of(inventario));
+        Optional<Inventario> resultado = inventarioService.findById(1L);
+        assertTrue(resultado.isPresent());
+        assertEquals(1L, resultado.get().getId());
     }
 
     @Test
-    void findByProductoId_Success() {
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(new Inventario()));
-        Optional<Inventario> result = inventarioService.findByProductoId(1L);
-        assertTrue(result.isPresent());
+    void testFindByProductoId() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+        Optional<Inventario> resultado = inventarioService.findByProductoId(10L);
+        assertTrue(resultado.isPresent());
+        assertEquals(10L, resultado.get().getProductoId());
     }
 
     @Test
-    void save_Success() {
-        Inventario i = new Inventario();
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(i);
-        Inventario result = inventarioService.save(i);
-        assertNotNull(result);
+    void testSave() {
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
+        Inventario resultado = inventarioService.save(inventario);
+        assertNotNull(resultado);
+        verify(inventarioRepository, times(1)).save(inventario);
     }
 
     @Test
-    void deleteById_Success() {
+    void testDeleteById() {
         doNothing().when(inventarioRepository).deleteById(1L);
         inventarioService.deleteById(1L);
-        verify(inventarioRepository).deleteById(1L);
+        verify(inventarioRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void existsByProductoId_Success() {
-        when(inventarioRepository.existsByProductoId(1L)).thenReturn(true);
-        boolean result = inventarioService.existsByProductoId(1L);
-        assertTrue(result);
+    void testExistsByProductoId() {
+        when(inventarioRepository.existsByProductoId(10L)).thenReturn(true);
+        boolean resultado = inventarioService.existsByProductoId(10L);
+        assertTrue(resultado);
     }
 
-    // --- Tests de Lógica de Negocio (actualizarStock) ---
-    @Test
-    void actualizarStock_Success() {
-        Inventario inv = new Inventario();
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inv);
+    // ==========================================
+    // TESTS ACTUALIZAR STOCK
+    // ==========================================
 
-        Inventario result = inventarioService.actualizarStock(1L, 10, 5);
-        assertEquals(10, result.getStockDisponible());
-        assertEquals(5, result.getStockReservado());
+    @Test
+    void testActualizarStock_Exitoso() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
+
+        Inventario resultado = inventarioService.actualizarStock(10L, 150, 30);
+
+        assertEquals(150, resultado.getStockDisponible());
+        assertEquals(30, resultado.getStockReservado());
+        verify(inventarioRepository, times(1)).save(inventario);
     }
 
     @Test
-    void actualizarStock_NotFound() {
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> inventarioService.actualizarStock(1L, 10, 5));
+    void testActualizarStock_NoEncontrado() {
+        when(inventarioRepository.findByProductoId(99L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            inventarioService.actualizarStock(99L, 100, 10);
+        });
+
+        assertEquals("No existe inventario para el producto ID: 99", exception.getMessage());
     }
 
-    // --- Tests de Lógica de Negocio (reservarStock) ---
+    // ==========================================
+    // TESTS RESERVAR STOCK
+    // ==========================================
+
     @Test
-    void reservarStock_Success() {
-        Inventario inv = new Inventario();
-        inv.setStockDisponible(10);
-        inv.setStockReservado(0);
+    void testReservarStock_Exitoso() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
         
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        
-        boolean result = inventarioService.reservarStock(1L, 5);
-        assertTrue(result);
-        assertEquals(5, inv.getStockDisponible());
-        assertEquals(5, inv.getStockReservado());
+        boolean resultado = inventarioService.reservarStock(10L, 50);
+
+        assertTrue(resultado);
+        assertEquals(50, inventario.getStockDisponible()); // 100 - 50
+        assertEquals(70, inventario.getStockReservado());  // 20 + 50
+        verify(inventarioRepository, times(1)).save(inventario);
     }
 
     @Test
-    void reservarStock_InsufficientStock() {
-        Inventario inv = new Inventario();
-        inv.setStockDisponible(2); // Menos que lo solicitado
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        
-        boolean result = inventarioService.reservarStock(1L, 5);
-        assertFalse(result);
+    void testReservarStock_NoEncontrado() {
+        when(inventarioRepository.findByProductoId(99L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.reservarStock(99L, 10));
     }
 
     @Test
-    void reservarStock_NegativeQuantity() {
-        Inventario inv = new Inventario();
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        assertThrows(IllegalArgumentException.class, () -> inventarioService.reservarStock(1L, -5));
-    }
-
-    // --- Tests de Lógica de Negocio (liberarStock) ---
-    @Test
-    void liberarStock_Success() {
-        Inventario inv = new Inventario();
-        inv.setStockDisponible(5);
-        inv.setStockReservado(5);
-        
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        
-        boolean result = inventarioService.liberarStock(1L, 5);
-        assertTrue(result);
-        assertEquals(10, inv.getStockDisponible());
-        assertEquals(0, inv.getStockReservado());
+    void testReservarStock_CantidadInvalida() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.reservarStock(10L, 0));
     }
 
     @Test
-    void liberarStock_InsufficientReservedStock() {
-        Inventario inv = new Inventario();
-        inv.setStockReservado(2); // Menos que lo solicitado
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
+    void testReservarStock_StockInsuficiente() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
         
-        boolean result = inventarioService.liberarStock(1L, 5);
-        assertFalse(result);
+        boolean resultado = inventarioService.reservarStock(10L, 150); // Pide más del stock disponible (100)
+
+        assertFalse(resultado);
+        verify(inventarioRepository, never()).save(any());
+    }
+
+    // ==========================================
+    // TESTS LIBERAR STOCK
+    // ==========================================
+
+    @Test
+    void testLiberarStock_Exitoso() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+
+        boolean resultado = inventarioService.liberarStock(10L, 10);
+
+        assertTrue(resultado);
+        assertEquals(110, inventario.getStockDisponible()); // 100 + 10
+        assertEquals(10, inventario.getStockReservado());   // 20 - 10
+        verify(inventarioRepository, times(1)).save(inventario);
     }
 
     @Test
-    void liberarStock_NegativeQuantity() {
-        Inventario inv = new Inventario();
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        assertThrows(IllegalArgumentException.class, () -> inventarioService.liberarStock(1L, -5));
-    }
-
-    // --- Tests de Lógica de Negocio (confirmarDespacho) ---
-    @Test
-    void confirmarDespacho_Success() {
-        Inventario inv = new Inventario();
-        inv.setStockReservado(5);
-        
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        
-        boolean result = inventarioService.confirmarDespacho(1L, 5);
-        assertTrue(result);
-        assertEquals(0, inv.getStockReservado());
+    void testLiberarStock_NoEncontrado() {
+        when(inventarioRepository.findByProductoId(99L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.liberarStock(99L, 10));
     }
 
     @Test
-    void confirmarDespacho_InsufficientReservedStock() {
-        Inventario inv = new Inventario();
-        inv.setStockReservado(2); // Menos que lo solicitado
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        
-        boolean result = inventarioService.confirmarDespacho(1L, 5);
-        assertFalse(result);
+    void testLiberarStock_CantidadInvalida() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.liberarStock(10L, -5));
     }
 
     @Test
-    void confirmarDespacho_NegativeQuantity() {
-        Inventario inv = new Inventario();
-        when(inventarioRepository.findByProductoId(1L)).thenReturn(Optional.of(inv));
-        assertThrows(IllegalArgumentException.class, () -> inventarioService.confirmarDespacho(1L, -5));
+    void testLiberarStock_StockReservadoInsuficiente() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+
+        boolean resultado = inventarioService.liberarStock(10L, 30); // Intenta liberar 30, pero solo hay 20 reservados
+
+        assertFalse(resultado);
+        verify(inventarioRepository, never()).save(any());
+    }
+
+    // ==========================================
+    // TESTS CONFIRMAR DESPACHO
+    // ==========================================
+
+    @Test
+    void testConfirmarDespacho_DesdeReservado_Exitoso() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+
+        boolean resultado = inventarioService.confirmarDespacho(10L, 15); // Hay 20 reservados, descuenta de ahí
+
+        assertTrue(resultado);
+        assertEquals(100, inventario.getStockDisponible()); // Intacto
+        assertEquals(5, inventario.getStockReservado());    // 20 - 15
+        verify(inventarioRepository, times(1)).save(inventario);
+    }
+
+    @Test
+    void testConfirmarDespacho_DesdeDisponible_Exitoso() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+
+        boolean resultado = inventarioService.confirmarDespacho(10L, 50); // Pide 50, excede reservados (20), cobra de disponible (100)
+
+        assertTrue(resultado);
+        assertEquals(50, inventario.getStockDisponible()); // 100 - 50
+        assertEquals(20, inventario.getStockReservado());  // Intacto
+        verify(inventarioRepository, times(1)).save(inventario);
+    }
+
+    @Test
+    void testConfirmarDespacho_SinStockEnAmbos() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+
+        boolean resultado = inventarioService.confirmarDespacho(10L, 150); // Excede ambos (100 y 20)
+
+        assertFalse(resultado);
+        verify(inventarioRepository, never()).save(any());
+    }
+
+    @Test
+    void testConfirmarDespacho_NoEncontrado() {
+        when(inventarioRepository.findByProductoId(99L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.confirmarDespacho(99L, 10));
+    }
+
+    @Test
+    void testConfirmarDespacho_CantidadInvalida() {
+        when(inventarioRepository.findByProductoId(10L)).thenReturn(Optional.of(inventario));
+        assertThrows(IllegalArgumentException.class, () -> inventarioService.confirmarDespacho(10L, 0));
     }
 }
