@@ -101,13 +101,18 @@ public class InventarioService {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
 
-        if (inventario.getStockReservado() < cantidad) {
-            return false;
+        if (inventario.getStockReservado() >= cantidad) {
+            inventario.setStockReservado(inventario.getStockReservado() - cantidad);
+            inventarioRepository.save(inventario);
+            return true;
         }
 
-        inventario.setStockReservado(inventario.getStockReservado() - cantidad);
-        inventarioRepository.save(inventario);
+        if (inventario.getStockDisponible() >= cantidad) {
+            inventario.setStockDisponible(inventario.getStockDisponible() - cantidad);
+            inventarioRepository.save(inventario);
+            return true;
+        }
 
-        return true;
+        return false;
     }
 }
