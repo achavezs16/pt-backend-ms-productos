@@ -49,6 +49,9 @@ public class Producto {
     
     @Column(name = "actualizado_en")
     private LocalDateTime actualizadoEn = LocalDateTime.now();
+
+    @Transient
+    private Integer stockInicial;
     
     // Constructors
     public Producto() {}
@@ -99,6 +102,10 @@ public class Producto {
     
     public LocalDateTime getActualizadoEn() { return actualizadoEn; }
     public void setActualizadoEn(LocalDateTime actualizadoEn) { this.actualizadoEn = actualizadoEn; }
+
+    public Integer getStockInicial() { return stockInicial;}
+
+    public void setStockInicial(Integer stockInicial) { this.stockInicial = stockInicial;}
     
     @PreUpdate
     public void preUpdate() { this.actualizadoEn = LocalDateTime.now(); }

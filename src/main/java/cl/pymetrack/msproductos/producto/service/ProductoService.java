@@ -1,5 +1,7 @@
 package cl.pymetrack.msproductos.producto.service;
 
+import cl.pymetrack.msproductos.inventario.entity.Inventario;
+import cl.pymetrack.msproductos.inventario.repository.InventarioRepository;
 import cl.pymetrack.msproductos.producto.dto.ProductoDTO;
 import cl.pymetrack.msproductos.producto.entity.Producto;
 import cl.pymetrack.msproductos.producto.repository.ProductoRepository;
@@ -16,6 +18,9 @@ public class ProductoService {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private InventarioRepository inventarioRepository;
+
     public List<Producto> getProductosByPyme(Long pymeId) {
         return productoRepository.findByIdPymeAndActivoTrue(pymeId);
     }
@@ -26,7 +31,20 @@ public class ProductoService {
 
     public Producto createProducto(Producto producto) {
         producto.setActivo(true);
-        return productoRepository.save(producto);
+
+        Producto productoGuardado = productoRepository.save(producto);
+
+        if (!inventarioRepository.existsByProductoId(productoGuardado.getId())) {
+            Integer stockInicial = producto.getStockInicial() != null
+                ? producto.getStockInicial()
+                : 0;
+
+        Inventario inventario = new Inventario(productoGuardado.getId(), stockInicial);
+            inventario.setStockReservado(0);
+            inventarioRepository.save(inventario);
+        }
+
+        return productoGuardado;
     }
 
     public Optional<Producto> updateProducto(Long id, Producto productoDetails) {
@@ -56,7 +74,6 @@ public class ProductoService {
         return productoRepository.buscarPorPymeYQuery(pymeId, query);
     }
 
-    // Método para convertir Producto a ProductoDTO
     private ProductoDTO convertToDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());
@@ -75,7 +92,6 @@ public class ProductoService {
         return dto;
     }
 
-    // Método para obtener productos como DTOs
     public List<ProductoDTO> getProductosByPymeAsDTO(Long pymeId) {
         List<Producto> productos = productoRepository.findByIdPymeAndActivoTrue(pymeId);
         return productos.stream()
