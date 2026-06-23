@@ -8,7 +8,7 @@ spring:
     name: ms-productos
 
   datasource:
-    url: jdbc:mysql://localhost:3309/ms_productos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://mysql-productos:3306/ms_productos
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -30,7 +30,7 @@ spring:
         use_sql_comments: true
 
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: guest
     password: guest
