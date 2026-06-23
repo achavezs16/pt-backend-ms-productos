@@ -8,9 +8,9 @@ spring:
     name: ms-productos
 
   datasource:
-    url: jdbc:mysql://mysql-productos:3306/ms_productos
-    username: root
-    password: password
+    url: jdbc:mysql://pymetrack-db.c9wmkhboh8bt.us-east-1.rds.amazonaws.com:3306/ms_productos 
+    username: pymetrack
+    password: pymetrack123
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
