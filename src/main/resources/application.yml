@@ -8,9 +8,9 @@ spring:
     name: ms-productos
 
   datasource:
-    url: jdbc:mysql://localhost:3309/ms_productos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: password
+    url: jdbc:mysql://pymetrack-db.cuuv61sgfvhp.us-east-1.rds.amazonaws.com:3306/ms_productos?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: pymetrack
+    password: pymetrack123
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -26,11 +26,12 @@ spring:
     open-in-view: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
         use_sql_comments: true
 
   rabbitmq:
-    host: localhost
+    host: 172.31.68.175
     port: 5672
     username: guest
     password: guest
